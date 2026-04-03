@@ -1,0 +1,227 @@
+
+```{r setup, include=FALSE}
+
+### Descarga Base de datos ###
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("devtools") # solo la primera vez
+#devtools::install_github("centromagis/paqueteMODELOS", force =TRUE)
+library(paqueteMODELOS)
+data("vivienda")
+
+```
+
+
+# Stage 1: Data Type Inspection
+
+We examine the structure of the dataset to identify variable types and determine if any transformation is needed.
+
+```{r data-inspection, echo=TRUE}
+# Display structure: variable names, types, and example values
+str(vivienda)
+
+# Check classes of each variable individually
+sapply(vivienda, class)
+
+# Optional: get a quick summary of each variable
+summary(vivienda)
+
+```
+
+---
+
+## Data Preparation
+
+A working copy of the dataset is created to preserve the original data.
+
+```{r data-copy, echo=TRUE}
+
+# Create a working copy of the dataset
+
+vivienda_clean <- vivienda
+
+```
+
+---
+
+## Variable Renaming
+
+Readable labels are assigned to improve clarity in analysis.
+
+```{r renaming, echo=TRUE}
+
+# Define readable labels for selected variables
+etiquetas <- c(
+  zona = "Zona",
+  piso = "Piso",
+  estrato = "Estrato",
+  preciom = "Precio",
+  areaconst = "Area construida",
+  parqueaderos = "Parqueaderos",
+  banios = "Baños",
+  habitaciones = "Habitaciones",
+  tipo = "Tipo",
+  barrio = "Barrio",
+  longitud = "Longitud",
+  latitud = "Latitud"
+)
+
+# Rename columns using labels
+names(vivienda_clean) <- ifelse(
+  names(vivienda_clean) %in% names(etiquetas),
+  etiquetas[names(vivienda_clean)],
+  names(vivienda_clean)
+)
+
+#vivienda_clean
+
+
+```
+
+---
+
+# Stage 2: Data Quality (Missing Values)
+
+Missing values were identified not only as NA but also as non-standard representations such as empty strings and text placeholders.
+
+```{r missing-cleaning, echo=TRUE}
+
+## Count missing values 
+
+missing_values <- c("", " ", "NA", "NaN", "null", "NULL")
+
+faltantes <- sapply(vivienda, function(x) {
+  x <- as.character(x)
+  sum(is.na(x) | trimws(x) %in% missing_values)
+})
+
+faltantes
+
+# Count missing values (including non-standard)
+
+missing_values <- c("", " ", "NA", "NaN", "null", "NULL")
+
+faltantes_totales <- sapply(vivienda_clean, function(x) {
+  x <- as.character(x)
+  sum(is.na(x) | trimws(x) %in% missing_values)
+})
+
+faltantes_totales
+
+# Convert non-standard missing values to NA
+vivienda_clean <- data.frame(
+  lapply(vivienda_clean, function(x) {
+    x <- as.character(x)
+    x[trimws(x) %in% missing_values] <- NA
+    x
+  }),
+  stringsAsFactors = FALSE
+)
+
+
+
+sapply(faltantes_totales, class)
+
+
+```
+
+Results show that most missing values are in *Piso* and *Parqueaderos*.
+
+---
+
+
+# Stage 3: Data Cleaning
+
+## Handling Missing Values in parking (Parqueaderos)
+
+Missing values in the variable *Parqueaderos* are interpreted as absence of parking spaces. Therefore, they are replaced with zero.
+
+```{r replace-na-parking, echo=TRUE}
+
+vivienda_clean$Parqueaderos[is.na(vivienda_clean$Parqueaderos)] <- 0
+
+#vivienda_clean
+
+```
+
+## Handling Missing Values in Floor (Piso)
+
+Missing values in *Piso* are imputed using the median within each zone.  
+This approach preserves the dataset size and provides more realistic values than global imputation.
+
+
+```{r impute-piso, echo=TRUE}
+
+# Ensure Piso is numeric
+vivienda_clean$Piso <- as.numeric(vivienda_clean$Piso)
+
+# Impute missing values using median by Zona
+vivienda_clean$Piso <- ave(
+  vivienda_clean$Piso,
+  vivienda_clean$Zona,
+  FUN = function(x) {
+    if (all(is.na(x))) {
+      x
+    } else {
+      x[is.na(x)] <- median(x, na.rm = TRUE)
+      x
+    }
+  }
+)
+
+#vivienda_clean
+```
+
+## Remove rows with missing values ONLY for variables with few NA
+
+```{r remove_last_NA, echo=TRUE}
+
+cols_pequenos_na <- c("Zona", "Piso", "Estrato", "Precio", "Area.construida", "Parqueaderos",                                 "Baños", "Habitaciones", "Tipo", "Barrio", "Longitud", "Latitud")
+
+vivienda_clean <- vivienda_clean[
+  complete.cases(vivienda_clean[, cols_pequenos_na]),
+]
+
+#vivienda_clean
+
+```
+
+---
+
+## Data Type Corrections
+
+The structure of the dataset was examined to ensure that categorical and numerical variables are correctly defined.
+
+```{r type-corrections, echo=TRUE}
+
+# 1. Convert numeric variables that represent categories into factors
+vivienda_clean$Zona <- as.factor(vivienda_clean$Zona)
+
+# 2. Convert character variables to factors
+vivienda_clean$Barrio <- as.factor(vivienda_clean$Barrio)
+
+# 3. Ensure numeric variables are correctly formatted
+vivienda_clean$Precio <- as.numeric(vivienda_clean$Precio)
+# Convert to numeric
+vivienda_clean$Piso <- as.numeric(vivienda_clean$Piso)
+
+# 4. Remove unnecessary variables
+vivienda_clean$id <- NULL
+
+# Check classes of each variable individually
+sapply(vivienda_clean, class)
+
+
+```
+
+## Stage 4: Verfication
+
+
+```{r Final-data-inspection, echo=TRUE}
+
+# Optional: get a quick summary of each variable
+summary(vivienda_clean)
+
+```
+
+
+

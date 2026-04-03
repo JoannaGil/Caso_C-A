@@ -1,0 +1,8 @@
+"0",""
+"0","### Descarga Base de datos ###"
+"0","knitr::opts_chunk$set(echo = TRUE)"
+"0","#install.packages(""devtools"") # solo la primera vez"
+"0","#devtools::install_github(""centromagis/paqueteMODELOS"", force =TRUE)"
+"0","library(paqueteMODELOS)"
+"0","data(""vivienda"")"
+"0",""

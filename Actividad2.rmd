@@ -1,0 +1,456 @@
+```{r setup, include=FALSE}
+
+### Descarga Base de datos ###
+knitr::opts_chunk$set(echo = TRUE)
+#install.packages("devtools") # solo la primera vez
+#devtools::install_github("centromagis/paqueteMODELOS", force =TRUE)
+library(paqueteMODELOS)
+data("vivienda")
+str(vivienda)
+
+```
+
+```{r outliers-prep, echo=FALSE, results='hide'}
+
+# Seleccionar solo variables numéricas y excluir id
+#vars_num <- names(viviendaSNA)[sapply(viviendaSNA, is.numeric)]
+#vars_num <- setdiff(vars_num, "id")
+#vivienda_num <- viviendaSNA[, vars_num, drop = FALSE]
+
+# Etiquetas en español para variables
+etiquetas <- c(
+  estrato = "Estrato",
+  preciom = "Precio",
+  areaconst = "Area construida",
+  parqueaderos = "Parqueaderos",
+  banios = "Baños",
+  habitaciones = "Habitaciones",
+  longitud = "Longitud",
+  latitud = "Latitud"
+)
+label_var <- function(x) ifelse(x %in% names(etiquetas), etiquetas[x], x)
+
+```
+
+```{=html}
+<style>
+body {
+  background: #ffffff;
+  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: #2b2b2b;
+}
+h1, h2, h3, h4 {
+  font-family: "Google Sans", "Roboto", sans-serif;
+  font-weight: 600;
+}
+h1 {
+  color: #083D77;
+  font-size: 30px;
+  margin: 39px 0 12px 0;
+  line-height: 1.1;
+}
+h2 {
+  color: #083D77;
+  font-size: 25px;
+  margin: 24px 0 12px 0;
+}
+h3 {
+  color: #083D77;
+  font-size: 20px;
+  margin: 15px 0 0 0;
+}
+body p, .main-container p {
+  text-align: justify !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+}
+details {
+  margin-bottom: 8px;
+}
+pre, code, pre code, .sourceCode, .sourceCode pre, .hljs {
+  background: #f9fafb !important;
+}
+table, .table {
+  width: auto !important;
+  display: inline-table !important;
+  margin: 12px 0 !important;
+  font-size: 12px !important;
+  margin-right: 18px !important;
+  vertical-align: top !important;
+}
+table th, table td, .table th, .table td {
+  text-align: justify !important;
+  padding: 3px 6px !important;
+}
+table th:not(:first-child), table td:not(:first-child),
+.table th:not(:first-child), .table td:not(:first-child) {
+  text-align: right !important;
+}
+table tbody tr:nth-child(odd), .table tbody tr:nth-child(odd) {
+  background: #f3f4f6;
+}
+table caption {
+  caption-side: bottom;
+  text-align: right !important;
+  font-size: 12px;
+  color: #000;
+  font-weight: 700;
+  display: table-caption;
+  width: 100%;
+  padding-top: 6px;
+  white-space: nowrap;
+}
+.table-row {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+}
+.table-row .kable {
+  flex: 1 1 360px;
+}
+.table-col {
+  display: flex;
+  flex-direction: column;
+  text-align: justify !important;
+  gap: 18px;
+  align-items: flex-start;
+}
+.table-col table {
+  display: table !important;
+  margin-right: 0 !important;
+}
+.table-spacer {
+  height: 10px;
+}
+body p, .main-container p {
+  text-align: justify !important;
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+}
+details > summary {
+  font-size: 15px;
+  color: #000;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+details > summary:hover {
+  background: #eef3ff;
+  color: #083D77;
+  transform: translateX(2px);
+}
+details[open] > summary {
+  background: #e7efff;
+  color: #083D77;
+}
+</style>
+```
+
+<h1>Caso C&A</h1>
+
+
+<img src="imagenes/cali.png" alt="Vista urbana de edificios" style="width: 100%; height: 50%; border-radius: 6px; display: block;"/>
+
+
+<h2>Enunciado</h2>
+
+<p>Maria comenzó como agente de bienes raíces en Cali hace 10 años. Después de laborar dos años para una empresa nacional, se traslado a Bogotá y trabajó para otra agencia de bienes raíces. Sus amigos y familiares la convencieron de que con su experiencia y conocimientos del negocio debía abrir su propia agencia. Terminó por adquirir la licencia de intermediario y al poco tiempo fundó su propia compañía, C&A (Casas y Apartamentos) en Cali. Santiago y Lina, dos vendedores de la empresa anterior aceptaron trabajar en la nueva compaña. En la actualidad ocho agentes de bienes raíces colaboran con ella en C&A.</p>
+
+<p>Actualmente las ventas de bienes raíces en Cali se han visto disminuidas de manera significativa en lo corrido del año. Durante este periodo muchas instituciones bancarias de ahorro y vivienda están prestando grandes sumas de dinero para la industria y la construcción comercial y residencial. Cuando el efecto producto de las tensiones políticas y sociales disminuya, se espera que la actividad económica de este sector se reactive.</p>
+
+<p>Hace dos días, María recibió una carta solicitando asesoría para la compra de dos viviendas por parte de una compañía internacional que desea ubicar a dos de sus empleados con sus familias en la ciudad. Las solicitudes incluyen las siguientes condiciones:</p>
+
+::: {style="margin: 6px 0 16px 0;"}
+<img src="imagenes/oferta.png" alt="Vista urbana de edificios" style="width:60%; height: 60%; border-radius: 6px; display: block;"/>
+:::
+
+<h2>Pasos requeridos para la obtención de los resultados</h2>
+
+```{=html}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  function openSectionFromHash() {
+    var id = window.location.hash.replace("#", "");
+    if (!id) return;
+    var anchor = document.getElementById(id);
+    if (!anchor) return;
+    var details = anchor.nextElementSibling;
+    if (details && details.tagName && details.tagName.toLowerCase() === "details") {
+      details.open = true;
+    }
+  }
+
+  document.querySelectorAll(".sidebar-nav a").forEach(function (link) {
+    link.addEventListener("click", function () {
+      setTimeout(openSectionFromHash, 0);
+    });
+  });
+
+  openSectionFromHash();
+});
+</script>
+```
+
+<details>
+
+<div id="Punto_1"></div>
+<summary>**Paso 1.**</summary>
+
+<p>
+
+-   Realice un filtro en la base de datos e incluya únicamente las ofertas correspondientes a casas ubicadas en la zona norte de la ciudad.
+
+-   Presente los primeros 3 registros de la consulta, acompañados de tablas que validen los resultados obtenidos. Además, incluya un mapa con los puntos correspondientes a dichas ofertas.
+
+
+</p>
+
+```{r filtrado_casas_norte, echo=FALSE, message=FALSE, fig.cap="Grafica 1. Ofertas de vivienda tipo casa clasificado Zona Norte"}
+# Creación de la Sub_Base
+base2 <- subset(vivienda, zona == "Zona Norte" & tipo == "Casa")
+
+library(leaflet)
+
+zona_norte <- data.frame(
+  lat = c(3.540, 3.540, 3.410, 3.410),
+  lon = c(-76.560, -76.490, -76.490, -76.560)
+)
+
+leaflet(base2) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addCircleMarkers(
+    lng = ~longitud,
+    lat = ~latitud,
+    radius = 5,
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    color = "#2F5D8A"
+  ) %>%
+  addPolygons(
+    lng = zona_norte$lon,
+    lat = zona_norte$lat,
+    fill = FALSE,
+    color = "red",
+    weight = 3
+  ) %>%
+  setView(lng = -76.515, lat = 3.48, zoom = 13)
+
+library(knitr)
+
+kable(head(base2,3))
+
+
+```
+
+<p> 
+
+En la imagen 1, los registros fueron seleccionados utilizando la variable categórica zona de la base de datos (es decir, zona == "Zona Norte"). Aunque esta variable clasifica las viviendas como pertenecientes al norte de la ciudad, dicha clasificación no necesariamente corresponde a una delimitación geográfica precisa basada en coordenadas. Por esta razón, se observan puntos ubicados fuera del recuadro rojo, lo que sugiere que algunos registros clasificados como "Zona Norte" en la base de datos presentan coordenadas que se encuentran en otras áreas de la ciudad.
+
+</p> 
+
+
+```{r lag_log_norte, echo=FALSE, message=FALSE, fig.cap="Grafica 2. Ofertas de Vivienda Tipo Casa Delimitado Zona Norte"}
+
+# Creación de la Sub_Base usando coordenadas (no la variable zona)
+
+base3 <- subset(
+  vivienda,
+  tipo == "Casa" &
+  latitud >= 3.475 &
+  latitud <= 3.492 &
+  longitud >= -76.525 &
+  longitud <= -76.500
+)
+
+library(leaflet)
+
+# Polígono que delimita la zona norte
+
+zona_norte <- data.frame(
+  lat = c(3.540, 3.540, 3.410, 3.410),
+  lon = c(-76.560, -76.490, -76.490, -76.560)
+)
+
+# Mapa
+leaflet(base3) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  
+  addCircleMarkers(
+    lng = ~longitud,
+    lat = ~latitud,
+    radius = 5,
+    stroke = FALSE,
+    fillOpacity = 0.8,
+    color = "#2F5D8A"
+  ) %>%
+  
+  addPolygons(
+    lng = zona_norte$lon,
+    lat = zona_norte$lat,
+    fill = FALSE,
+    color = "red",
+    weight = 3
+  ) %>%
+  
+  setView(lng = -76.515, lat = 3.48, zoom = 13)
+
+library(knitr)
+
+kable(head(base3,3))
+
+
+```
+
+<p> 
+
+En la imagen 2, los registros fueron seleccionados utilizando el criterio basado en las coordenadas geográficas (latitud y longitud). Es decir, se filtraron únicamente aquellas viviendas tipo casa cuyas coordenadas se encuentran dentro del rango definido para representar aproximadamente la zona norte de la ciudad. Como resultado, todos los puntos aparecen concentrados dentro del recuadro rojo, lo que indica que el criterio espacial aplicado coincide con la delimitación geográfica representada en el mapa.
+
+En síntesis, las dos imágenes evidencian que la variable zona de la base de datos no coincide exactamente con la delimitación espacial definida mediante latitud y longitud. Mientras que el filtro basado en coordenadas garantiza que todas las observaciones se encuentren dentro del área geográfica definida, el filtro basado en la variable categórica puede incluir registros cuya ubicación real se encuentra fuera de esa zona. Esta diferencia resalta la importancia de validar espacialmente los datos cuando se trabaja con información geográfica.
+
+</p> 
+
+
+<p>
+
+-   Discuta si todos los puntos se encuentran dentro de la zona especificada o si hay registros ubicados en otras zonas, y explique las razones de ser el caso.
+
+</p>
+
+
+<p> 
+
+Al comparar los dos mapas se observa que no todos los puntos clasificados como pertenecientes a la Zona Norte se encuentran realmente dentro del área delimitada en el mapa. Cuando se utilizó el filtro basado en la variable zona de la base de datos (zona == "Zona Norte"), algunos registros aparecieron fuera del recuadro que representa el sector norte de la ciudad. Esto indica que la clasificación incluida en la base no corresponde necesariamente a una delimitación geográfica exacta.
+
+Por el contrario, cuando la selección de las viviendas se realizó utilizando directamente las coordenadas geográficas (latitud y longitud) que definen el rango aproximado de la zona norte, todos los puntos quedaron ubicados dentro del área delimitada en el mapa. Esto demuestra que el criterio espacial basado en coordenadas permite identificar con mayor precisión la ubicación real de los inmuebles.
+
+La presencia de registros fuera del área delimitada puede explicarse por varias razones. En primer lugar, la variable zona puede representar una clasificación general o administrativa que no coincide exactamente con límites geográficos precisos. En segundo lugar, pueden existir errores o inconsistencias en la asignación de la zona dentro de la base de datos. Finalmente, también es posible que algunos registros tengan coordenadas aproximadas o errores de georreferenciación.
+
+En conclusión, el análisis muestra que no todos los puntos clasificados como pertenecientes a la Zona Norte se encuentran realmente dentro de esa área cuando se analizan sus coordenadas geográficas. Por ello, para análisis espaciales es más confiable utilizar directamente las variables de latitud y longitud, ya que estas reflejan con mayor precisión la ubicación real de las observaciones.
+
+</p> 
+
+</details>
+
+
+<div id="punto_2"></div>
+<details>
+  <summary>
+    **Paso 2.**
+  </summary>
+  
+ <p>  
+ 
+  Realice un análisis exploratorio de datos enfocado en la correlación entre la variable respuesta (precio de la casa) en función del área construida, estrato, numero de baños, numero de habitaciones y zona donde se ubica la vivienda. Use gráficos interactivos con el paquete plotly e interprete los resultados.
+ </p>
+ 
+```{r}
+
+```
+ 
+ 
+```{r p/Area, warning=FALSE, echo=FALSE, message=FALSE, fig.cap="Grafica 1. Precio vs Área Construida"}
+library(dplyr)
+library(plotly)
+
+#Precio vs Área Construida
+
+fig1 <- plot_ly(vivienda,
+                x = ~areaconst,
+                y = ~preciom,
+                type = "scatter",
+                mode = "markers",
+                color = ~zona,
+                text = ~paste("Barrio:", barrio)) %>%
+  layout(xaxis = list(title = "Área construida (m²)"),
+         yaxis = list(title = "Precio"))
+
+fig1
+
+
+```
+ 
+ 
+ 
+```{r p/Estrato, warning=FALSE, echo=FALSE, message=FALSE, fig.cap="Grafica 2. Precio vs Estrato"}
+
+#Precio vs Estrato
+fig2 <- plot_ly(vivienda,
+                x = ~estrato,
+                y = ~preciom,
+                type = "scatter",
+                mode = "markers",
+                color = ~zona) %>%
+  layout(
+         xaxis = list(title = "Estrato"),
+         yaxis = list(title = "Precio"))
+
+fig2
+```
+ 
+ 
+```{r p/Numero_baños,  warning=FALSE, echo=FALSE, message=FALSE, fig.cap="Grafica 3. Precio vs Número de Baños"}
+
+#Precio vs Número de Baños
+fig3 <- plot_ly(vivienda,
+                x = ~banios,
+                y = ~preciom,
+                type = "scatter",
+                mode = "markers",
+                color = ~zona) %>%
+  layout(
+         xaxis = list(title = "Número de Baños"),
+         yaxis = list(title = "Precio"))
+
+fig3
+```
+```{r p/Numero_Habitaciones,  warning=FALSE, echo=FALSE, message=FALSE, fig.cap="Grafica 4. Precio vs Número de Habitaciones"}
+#Precio vs Número de Habitaciones
+fig4 <- plot_ly(vivienda,
+                x = ~habitaciones,
+                y = ~preciom,
+                type = "scatter",
+                mode = "markers",
+                color = ~zona) %>%
+  layout(
+         xaxis = list(title = "Habitaciones"),
+         yaxis = list(title = "Precio"))
+
+fig4
+
+```
+```{r p/Zona, echo=FALSE,  warning=FALSE, message=FALSE, fig.cap="Grafica 5. Precio por Zona"}
+#Precio por Zona
+fig5 <- plot_ly(vivienda,
+                x = ~zona,
+                y = ~preciom,
+                type = "box",
+                color = ~zona) %>%
+  layout(
+         xaxis = list(title = "Zona"),
+         yaxis = list(title = "Precio"))
+
+fig5
+
+```
+```{r correlacion,  echo=FALSE, message=FALSE, fig.cap="Tabla 1. Correlacion"}
+#Matriz de correlación
+variables <- vivienda %>%
+  select(preciom, areaconst, estrato, banios, habitaciones)
+
+cor(variables, use = "complete.obs")
+```
+ <p>
+ 
+ El análisis exploratorio muestra que el precio de la vivienda presenta una relación positiva con el área construida, siendo esta la variable que parece tener mayor asociación con el precio. Asimismo, se observa que viviendas ubicadas en estratos más altos tienden a presentar precios mayores. Variables como número de baños y habitaciones también muestran una relación positiva, aunque menos fuerte que el área construida. Finalmente, el análisis por zona evidencia diferencias en la distribución de precios, lo cual sugiere que la ubicación geográfica también influye en el valor de las viviendas.
+ 
+ </p>
+  
+  
+  </details>

@@ -1,0 +1,180 @@
+
+#Librerias
+
+library(paqueteMODELOS)
+library(sf)
+library(leaflet)
+library(dplyr)
+library(kableExtra)
+
+source("scripts/Exploracion_Datos.R")
+comunas <- st_read("data/mc_comunas.shp")
+data("vivienda_clean")
+
+head(comunas)
+st_geometry_type(comunas)
+st_crs(comunas)
+plot(comunas)
+
+# =============================================================
+# Desarrollo paso1. Filtrado, Validación y Análisis Geoespacial del Mercado Inmobiliario — Zona Norte de Cali
+# =============================================================
+
+casas_zona_norte_base <- vivienda_clean %>%
+  filter(Tipo == "Casa", Zona == "Zona Norte")
+
+
+# =============================================================
+# STAGE 1: Convertir viviendas a objeto espacial
+# =============================================================
+
+viviendas_sf <- st_as_sf(
+  vivienda_clean,
+  coords = c("Longitud", "Latitud"),
+  crs = 4326
+)
+
+
+# =============================================================
+# STAGE 2: Asegurar que comunas esté en el mismo CRS
+# =============================================================
+
+comunas_4326 <- st_transform(comunas, 4326)
+st_crs(comunas_4326)
+
+# =============================================================
+# STAGE 3: Unión espacial (LO MÁS IMPORTANTE)
+# =============================================================
+
+viviendas_comuna <- st_join(viviendas_sf, comunas_4326)
+
+# =============================================================
+# STAGE 4: Verificar resultado
+# =============================================================
+
+head(viviendas_comuna)
+sum(is.na(viviendas_comuna$comuna))
+
+# =============================================================
+# STAGE 5: Definicion de las zonas en el mapa
+# =============================================================
+
+
+comunas <- st_read("data/mc_comunas.shp")
+
+
+info_comunas <- data.frame(
+  comuna = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+             12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22),
+  zona = c(
+    "Oeste",   # 1
+    "Norte",   # 2
+    "Centro",  # 3
+    "Norte",   # 4
+    "Norte",   # 5
+    "Norte",   # 6
+    "Centro", # 7
+    "Centro", # 8
+    "Centro", # 9
+    "Centro", # 10
+    "Centro", # 11
+    "Centro", # 12
+    "Oriente", # 13
+    "Oriente", # 14
+    "Oriente", # 15
+    "Oriente", # 16 
+    "Sur",     # 17
+    "Oeste",   # 18
+    "Oeste",   # 19
+    "Oeste",   # 20
+    "Oriente", # 21 
+    "Sur"      # 22
+  ),
+  
+  color = c(
+    "#f4a261", # 1  - Oeste
+    "#457b9d", # 2  - Norte
+    "#6c757d", # 3  - Centro
+    "#457b9d", # 4  - Norte
+    "#457b9d", # 5  - Norte
+    "#457b9d", # 6  - Norte
+    "#e63946", # 7  - Oriente
+    "#6c757d", # 8  - Oriente
+    "#6c757d", # 9  - Oriente
+    "#6c757d", # 10 - Oriente
+    "#6c757d", # 11 - Oriente
+    "#6c757d", # 12 - Oriente
+    "#e63946", # 13 - Oriente
+    "#e63946", # 14 - Oriente
+    "#e63946", # 15 - Oriente
+    "#e63946", # 16 - Sur  
+    "#2a9d8f", # 17 - Sur
+    "#f4a261", # 18 - Oeste
+    "#f4a261", # 19 - Oeste
+    "#f4a261", # 20 - Oeste
+    "#e63946", # 21 - Oriente
+    "#2a9d8f"  # 22 - Sur
+  )
+)
+
+comunas_4326 <- st_transform(comunas, 4326)
+
+comunas_mapa <- comunas_4326 %>%
+  left_join(info_comunas, by = "comuna")
+
+#head(comunas_mapa)
+
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  
+  addPolygons(
+    data = comunas_mapa,
+    fillColor = ~color,
+    fillOpacity = 0.35,
+    color = "white",
+    weight = 1,
+    popup = ~paste0(
+      "<b>", nombre, "</b><br>",
+      "Zona: ", zona, "<br>",
+      "Color: ", color
+    )
+  ) %>%
+  
+  addLegend(
+    position = "bottomright",
+    colors = c("#457b9d", "#2a9d8f", "#e63946", "#f4a261", "#6c757d"),
+    labels = c("Norte", "Sur", "Oriente", "Oeste", "Centro"),
+    title = "Zonas de Cali",
+    opacity = 1
+  )
+
+
+# =============================================================
+# STAGE 6: Trabajar base en zonas delimitas en mapa 
+# =============================================================
+
+
+
+# 1. Convertir TODA la base a objeto espacial
+viviendas_sf <- st_as_sf(
+  vivienda_clean,
+  coords = c("Longitud", "Latitud"),
+  crs = 4326
+)
+
+# 2. Ubicar cada vivienda dentro de una comuna
+viviendas_ubicadas <- st_join(viviendas_sf, comunas_mapa)
+
+# 3. Filtrar viviendas tipo casa con Zona Norte (base original)
+casas_zona_norte_base <- viviendas_ubicadas %>%
+  filter(Tipo == "Casa", Zona == "Zona Norte")
+
+# 4. Verificar si realmente están en zona norte del mapa
+casas_zona_norte_base <- casas_zona_norte_base %>%
+  mutate(
+    verificacion_zona = ifelse(zona == "Norte", "Correcta", "Incorrecta")
+  )
+
+
+
+

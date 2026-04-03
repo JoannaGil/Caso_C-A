@@ -1,0 +1,392 @@
+---
+output: html_document
+css: css/styles.css
+---
+
+```{r setup, include=FALSE}
+
+source("scripts/setup.R")
+source("scripts/Exploracion_Datos.R")
+source("scripts/setup_map.R")
+source("scripts/Analisis_Exploratorio_ZonaNorte.R")
+```
+
+<script src="js/script.js"></script>
+
+
+
+
+<h1> Caso C&A </h1>
+
+<img src="figures/Banner.png" class="banner">
+
+<h2> Enunciado </h2>
+
+<p> Maria comenzó como agente de bienes raíces en Cali hace 10 años. Después de laborar dos años para una empresa nacional, se traslado a Bogotá y trabajó para otra agencia de bienes raíces. Sus amigos y familiares la convencieron de que con su experiencia y conocimientos del negocio debía abrir su propia agencia. Terminó por adquirir la licencia de intermediario y al poco tiempo fundó su propia compañía, C&A (Casas y Apartamentos) en Cali. Santiago y Lina, dos vendedores de la empresa anterior aceptaron trabajar en la nueva compaña. En la actualidad ocho agentes de bienes raíces colaboran con ella en C&A.</p>
+
+<p> Actualmente las ventas de bienes raíces en Cali se han visto disminuidas de manera significativa en lo corrido del año. Durante este periodo muchas instituciones bancarias de ahorro y vivienda están prestando grandes sumas de dinero para la industria y la construcción comercial y residencial. Cuando el efecto producto de las tensiones políticas y sociales disminuya, se espera que la actividad económica de este sector se reactive. </p>
+
+<p> Hace dos días, María recibió una carta solicitando asesoría para la compra de dos viviendas por parte de una compañía internacional que desea ubicar a dos de sus empleados con sus familias en la ciudad. Las solicitudes incluyen las siguientes condiciones: </p>
+
+
+<p>
+
+## 1. Filtrado y validación de datos
+
+Realice un filtrado de la base de datos para incluir únicamente las ofertas que cumplan con los siguientes criterios:
+**Tipo de propiedad:** casas
+**Ubicación:** zona norte de la ciudad
+
+A partir del resultado obtenido, desarrolle lo siguiente:
+
+- Incluya tablas o evidencias que respalden el proceso de filtrado aplicado.
+- Genere un mapa que muestre la ubicación geográfica de los registros seleccionados.
+- Análisis crítico
+
+
+
+</p>
+
+
+<details>
+
+  <summary>
+    Filtrado, Validación y Análisis Geoespacial del Mercado Inmobiliario — Zona Norte de Cali
+  </summary>
+
+
+<p>
+
+Como parte del proceso de validación geoespacial, se construyó un mapa base con la delimitación territorial de la ciudad de Cali, tomando como referencia los límites oficiales de comunas establecidos por la Secretaría de Planeación Municipal. Sobre esta base cartográfica se procedió a georreferenciar las viviendas de tipo casa clasificadas como pertenecientes a la Zona Norte en la base de datos original, utilizando para ello las variables de latitud y longitud registradas en cada observación.
+
+</p>
+
+
+```{r, Mapa_viviendas_Norte, echo=FALSE, message=FALSE, fig.cap="Grafica 1. Ofertas de vivienda tipo casa clasificado Zona Norte"}
+
+# =============================================================
+# STAGE 6: Trabajar base en zonas delimitas en mapa 
+# =============================================================
+
+
+leaflet() %>%
+  setView(lng = -76.515, lat = 3.42, zoom = 12) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  
+  addPolygons(
+    data = comunas_mapa,
+    fillColor = ~color,
+    fillOpacity = 0.30,
+    color = "white",
+    weight = 1,
+    popup = ~paste0(
+      "<b>", nombre, "</b><br>",
+      "Zona mapa: ", zona
+    )
+  ) %>%
+  
+  addCircleMarkers(
+    data = casas_zona_norte_base %>% filter(verificacion_zona == "Correcta"),
+    radius = 5,
+    stroke = FALSE,
+    fillOpacity = 0.9,
+    color = "#08306B",
+    popup = ~paste0(
+      "<b>Tipo:</b> ", Tipo, "<br>",
+      "<b>Zona base:</b> ", Zona, "<br>",
+      "<b>Zona mapa:</b> ", zona, "<br>",
+      "<b>Comuna:</b> ", nombre, "<br>",
+      "<b>Verificación:</b> Correcta"
+    )
+  ) %>%
+  
+  addCircleMarkers(
+    data = casas_zona_norte_base %>% filter(verificacion_zona == "Incorrecta"),
+    radius = 5,
+    stroke = FALSE,
+    fillOpacity = 0.9,
+    color = "black",
+    popup = ~paste0(
+      "<b>Tipo:</b> ", Tipo, "<br>",
+      "<b>Zona base:</b> ", Zona, "<br>",
+      "<b>Zona mapa:</b> ", zona, "<br>",
+      "<b>Comuna:</b> ", nombre, "<br>",
+      "<b>Verificación:</b> Incorrecta"
+    )
+  ) %>%
+  
+  addLegend(
+    position = "bottomright",
+    colors = c("#A6CEE3", "#B2DF8A", "#FB9A99", "#FDBF6F", "#B3B3B3", "#08306B", "black"),
+    labels = c("Norte", "Sur", "Oriente", "Oeste", "Centro", "Casa correcta", "Casa incorrecta"),
+    title = "Zonas y verificación",
+    opacity = 1
+  )
+```
+
+
+
+```{r conteo_verifcacion, echo=FALSE, message=FALSE}
+## Conteo general
+#table(casas_zona_norte_base$verificacion_zona)
+
+#Tabla con conteo de la clasificacion real
+casas_zona_norte_base %>%
+  st_drop_geometry() %>%
+  count(zona, verificacion_zona) %>%
+  arrange(desc(n)) %>%
+  kable(
+    col.names = c("Zona (Mapa)", "Verificación", "Cantidad"),
+    caption = "Tabla 1. Distribución de viviendas tipo casa según zona y verificación geográfica"
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed")
+  )
+```
+
+<p>
+
+La superposición de los registros sobre el mapa permitió contrastar la clasificación declarada en la variable zona con la ubicación geográfica real de cada propiedad. Los resultados revelan que, si bien una parte significativa de los registros se encuentra correctamente ubicada dentro de los límites de la Zona Norte, se identificaron observaciones que, pese a estar etiquetadas como pertenecientes a dicha zona, se localizan geográficamente en otras áreas de la ciudad.
+
+Estas inconsistencias constituyen un hallazgo relevante para la calidad del dato y pueden atribuirse a alguna de las siguientes causas:
+
+- ***Errores de captura:*** digitación incorrecta de la zona al momento del registro de la oferta inmobiliaria.
+
+- **Imprecisiones de georreferenciación:** coordenadas asignadas de forma automática a partir de direcciones incompletas o mal escritas, lo que desplaza el punto fuera de su ubicación real.
+
+- **Criterios de zonificación no estandarizados:** la delimitación de zonas utilizada en la fuente de datos original puede diferir de la cartografía oficial empleada en este análisis, especialmente en barrios ubicados en los límites entre zonas.
+
+- **Desactualización de la base de datos:** cambios en la estructura urbana o reclasificaciones administrativas posteriores al levantamiento de la información que no se ven reflejados en los registros.
+
+Este ejercicio de validación espacial pone de manifiesto la importancia de no limitarse al filtrado categórico al trabajar con datos geográficos. La incorporación de métodos de verificación basados en coordenadas permite identificar registros inconsistentes, depurar la base de datos con mayor precisión y garantizar que los análisis posteriores se sustenten en información territorialmente coherente.
+
+</p>
+
+</details>
+
+
+<details>
+
+  <summary>
+    Filtrado
+  </summary>
+  
+<p>
+Esta segunda etapa del proyecto de análisis del mercado inmobiliario de viviendas tipo casa ubicadas en la zona norte de la ciudad de Cali tiene como objetivo central comprender la estructura y el comportamiento de los datos antes de avanzar hacia el análisis de correlación, garantizando que las decisiones metodológicas posteriores estén fundamentadas en evidencia empírica.
+
+El proceso se desarrolla de forma secuencial y con propósito definido en cada paso:
+Primero, se realiza una inspección general del dataset: se verifican las dimensiones, los tipos de variables y las estadísticas descriptivas básicas. Esto permite confirmar que los datos fueron importados correctamente y detectar inconsistencias tempranas, como variables numéricas leídas como texto o rangos de valores inusuales.
+
+Segundo, se evalúa la calidad de los datos mediante la identificación de valores faltantes y registros duplicados. Este paso es crítico porque los valores ausentes afectan directamente el análisis de correlación: si los datos no faltan de forma aleatoria, los resultados pueden estar sesgados.
+
+Tercero, se lleva a cabo el análisis univariado, que consiste en examinar la distribución individual de cada variable de interés. El propósito no es meramente descriptivo: conocer la forma de cada distribución (simetría, presencia de valores atípicos, concentración) es lo que determina qué coeficiente de correlación es apropiado usar en la etapa siguiente. 
+
+</p>
+
+## Analisis Univariado
+
+### Distribucion del precio
+
+<p>
+
+Como primer paso del análisis univariado se examina el precio de la vivienda. Dado que en su escala original presenta alta dispersión y asimetría, se aplicó una transformación logarítmica para estabilizar la varianza y facilitar su interpretación.
+
+</p>
+
+```{r Bar_Variable_precio, echo=FALSE, message=FALSE}
+
+ggplot(ZonaNorte, aes(x = Precio)) +
+  geom_histogram(
+    bins = 30,
+    fill = "#A6CEE3",
+    color = "white"
+  ) +
+  scale_x_log10() +
+  labs(
+    title = "Distribución del precio (escala log)",
+    x = "Precio (log)",
+    y = "Número de viviendas"
+  ) +
+  theme_minimal()
+
+
+```
+
+<p>
+El histograma resultante muestra una distribución considerablemente más simétrica, con mayor concentración de viviendas en el rango de 300 a 500 millones de COP. Sin embargo, persiste una leve cola hacia la derecha, señal de que un grupo reducido de propiedades supera significativamente el precio típico del mercado en esta zona.
+
+Este comportamiento tiene implicaciones directas para el análisis siguiente: confirma que trabajar con log10(Precio) es la decisión correcta, ya que una distribución más simétrica mejora la estabilidad de los coeficientes de correlación y reduce la influencia desproporcionada de valores atípicos sobre los resultados.
+</p>
+
+### Distribucion del Area Construida
+
+<p>
+En línea con lo observado en el precio, el área construida también presenta una marcada asimetría positiva. La mayor parte de las viviendas se concentra entre los 100 y 300 m², con una cola extendida hacia valores superiores a los 1.000 m² que corresponde a un grupo reducido de propiedades de gran extensión.
+
+</p>
+
+```{r Bar_Variable_Area, echo=FALSE, message=FALSE}
+
+# Distribucion de Area_Construida
+ggplot(ZonaNorte, aes(x = Area_construida)) +
+  geom_histogram(
+    aes(y = after_stat(count / sum(count))),
+    bins = 30,
+    fill = "#B2DF8A",
+    color = "white"
+  ) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(
+    title = "Distribución del área construida",
+    x = "Área construida (m²)",
+    y = "Porcentaje de viviendas"
+  ) +
+  theme_minimal()
+
+
+```
+<p>
+
+Esta distribución es esperable en mercados inmobiliarios urbanos, donde predominan viviendas de tamaño estándar. Sin embargo, la presencia de estos valores extremos es relevante: los outliers detectados en la cola derecha pueden inflar la media e introducir ruido en los coeficientes de correlación, lo que refuerza la necesidad de evaluarlos antes de continuar con el análisis.
+
+</p>
+
+### Distribucion Baños y Habitaciones
+
+<p>
+
+Se analizan conjuntamente el número de baños y de habitaciones por compartir el mismo patrón distribucional. Los baños se concentran entre 2 y 4 con pico en 3 (184 viviendas), y las habitaciones entre 3 y 5 con pico en 4 (221 viviendas), confirmando que el dataset representa mayoritariamente viviendas de configuración estándar.
+
+</p>
+```{r Bar_Variable_Baños, echo=FALSE, message=FALSE}
+
+#Distribucion de Baños
+ggplot(ZonaNorte, aes(x = Banios)) +  
+  geom_bar(fill = "#FDBF6F") +
+  geom_text(stat = "count", aes(label = after_stat(count)), vjust = -0.5) +
+  labs(
+    title = "Distribución de viviendas por número de baños",
+    x = "Número de baños",
+    y = "Número de viviendas"
+  ) +
+  theme_minimal()
+```
+
+
+```{r Bar_Variable_Habitaciones, echo=FALSE, message=FALSE}
+
+#Distribucion de Habitaciones
+ggplot(ZonaNorte, aes(x = Habitaciones)) +
+  geom_bar(fill = "#c3c4c4") +
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.3) +
+  labs(
+    title = "Distribución de viviendas por número de habitaciones",
+    x = "Número de habitaciones",
+    y = "Número de viviendas"
+  ) +
+  theme_minimal()
+
+```
+
+<p>
+
+Sin embargo, ambas variables presentan colas derechas con peso real: 24 viviendas superan los 7 baños y 97 superan las 7 habitaciones, este último equivalente al 14% del dataset. Leído en conjunto con los outliers ya identificados en precio y área, el patrón es consistente: existe un subsegmento de viviendas de gran envergadura cuya influencia sobre los coeficientes de correlación deberá evaluarse explícitamente, ya sea conservándolas, transformando las variables o analizando ese grupo por separado.
+
+</p>  
+
+### Distribucion del estrato 
+
+<p>
+
+Para cerrar el análisis univariado, se examina el estrato socioeconómico. La distribución muestra que los estratos 3 y 5 concentran la mayor parte de las viviendas, siendo el estrato 5 el más frecuente, seguido de una participación intermedia del estrato 4 y una representación notablemente menor del estrato 6.
+
+</p>
+
+```{r Bar_Variable_Estrato, echo=FALSE, message=FALSE}
+
+#Distribucion de estrato
+
+ggplot(ZonaNorte, aes(x = factor(Estrato))) +
+  geom_bar(fill = "#FB9A99") +
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5) +
+  labs(
+    title = "Distribución de viviendas por estrato",
+    x = "Estrato",
+    y = "Número de viviendas"
+  )
+
+```
+
+<p>
+Este perfil es coherente con la ubicación geográfica del estudio: la zona norte de Cali agrupa predominantemente segmentos medios y medio-altos, por lo que la escasa presencia del estrato 6 refleja la composición real del mercado más que un sesgo en la muestra. De cara al análisis de correlación, el estrato es una variable de especial interés, ya que como variable ordinal es esperable que guarde una relación directa con el precio y el área construida —relación que se examinará en la etapa siguiente.
+</p>
+
+</details>
+
+
+
+
+```{r}
+# Verificar normalidad antes de elegir el método
+#shapiro.test(ZonaNorte$Precio)
+#shapiro.test(ZonaNorte$Area_construida)
+
+```
+
+
+```{r}
+# Subconjunto: casas en Zona Norte según variable categórica
+library(dplyr)
+
+base_corr <- vivienda_clean %>%
+  select(Precio, Area_construida, Estrato, Banios, Habitaciones)
+
+str(base_corr )
+sapply(base_corr, class)
+
+```
+
+
+
+
+
+
+
+
+```{r}
+# -------------------------------------------------------
+# Matriz de correlación de Spearman — ZonaNorte
+# -------------------------------------------------------
+
+
+
+
+# 2. Matriz de correlación Spearman
+matriz_cor <- cor(base_corr, method = "spearman", use = "complete.obs")
+print(round(matriz_cor, 3))
+
+# 3. Visualización — corrplot
+library(corrplot)
+
+corrplot(
+  matriz_cor,
+  method    = "color",
+  type      = "upper",
+  order     = "hclust",
+  addCoef.col = "black",
+  number.cex  = 0.8,
+  tl.col    = "black",
+  tl.srt    = 45,
+  col       = colorRampPalette(c("#D73027", "white", "#2166AC"))(200),
+  title     = "Correlación de Spearman — ZonaNorte",
+  mar       = c(0, 0, 2, 0)
+)
+
+
+
+
+```
+  
+ 
+

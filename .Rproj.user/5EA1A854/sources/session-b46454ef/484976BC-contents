@@ -1,0 +1,199 @@
+# carga de librerias
+library(paqueteMODELOS)
+library(ggplot2)
+library(summarytools)
+
+
+# carga de data
+data("rotacion")
+str(rotacion)
+
+data = rotacion[,c("Rotación",
+                   "Edad", "Antigüedad", "Ingreso_Mensual",
+                   "Genero", "Satisfación_Laboral","Rendimiento_Laboral")]
+
+# recodificacion de variables - para la estimacion del modelo
+data$rotacion <- as.numeric(data$Rotación =="Si")
+data$edad <- data$Edad
+data$ingresos <- data$Ingreso_Mensual
+data$antiguedad <- data$Antigüedad
+
+
+data$genero <- as.numeric(data$Genero =="M")
+
+data$satlab2 <- as.numeric(data$Satisfación_Laboral ==2)
+data$satlab3 <- as.numeric(data$Satisfación_Laboral ==3)
+data$satlab4 <- as.numeric(data$Satisfación_Laboral ==4)  
+
+data$redlab <- as.numeric(data$Rendimiento_Laboral ==4)
+
+#----------------------------------------------------------
+# analisis descriptivo univariado
+data2 <-data[, c("edad", "ingresos","antiguedad")]
+
+summarytools::descr(data2)
+
+par(mfrow = c(2, 2))
+hist(data$edad, main = "Edad", ylab = "frecuencia", xlab = "edad en años")
+hist(data$ingresos)
+hist(data$antiguedad)
+
+par(mfrow = c(1, 1))
+
+# 
+
+t1 = table(data$Satisfación_Laboral)
+barplot(t1, main = "Satisfacción Laboral", las =1,
+        ylim = c(0,500))
+
+summarytools::freq(data$Satisfación_Laboral)
+
+#-----------------------------------------------------------
+
+t2= table(data$Genero)
+barplot(t2)
+
+t0= table(data$Rotación)
+barplot(t0)
+
+#-----------------------------------------------------------
+
+sum(is.na(data))
+
+# ----------------------------------------------------------
+
+t3 =table(data$Rotación, data$Genero)
+barplot(t3)
+
+
+# -------------------------------------------------------------
+# estimación del modelo
+
+modelo <- glm(rotacion ~ edad + antiguedad + ingresos +
+              genero + satlab2 +satlab3 + satlab4 + redlab ,
+              data = data,
+              family = binomial())
+
+summary(modelo)
+
+# ---------------------------------------------------------
+exp(coef(modelo))
+
+#------------------------------------------------------------
+# Construccion de las muestras
+set.seed(123)
+
+n <- nrow(data)
+id_train <- sample(1:n, size = 0.7 * n)
+
+train <- data[id_train, ]
+test  <- data[-id_train, ]
+
+# Ver tamaños
+dim(train)
+dim(test)
+
+#------------------------------------------------------------
+
+# Estimacion del modelo - muestra de aprendizaje: train
+
+modelo <- glm(rotacion ~ edad + antiguedad + ingresos +
+                genero + satlab2 +satlab3 + satlab4 + redlab ,
+              data = train,
+              family = binomial())
+
+summary(modelo)
+
+#---------------------------------------------------------
+
+probabilidad <- predict(modelo, newdata = test, type = "response")
+pred <- ifelse(probabilidad >= 0.5, 1,0)
+
+# matriz de confision
+real <- factor(test$rotacion, levels = c(0,1), labels = c("No", "Si"))
+pred <- factor(pred, levels = c(0,1), labels = c("No", "Si"))
+
+matriz_confusion = table(Real = real,
+                         Predicho = pred)
+matriz_confusion
+
+# ------------------------------------------------------------------
+# balanceo de categorias
+library(ROSE)
+trainB <- ovun.sample(rotacion ~ . , data = train, method = "over")$data
+#---------------------------------------------------------------------
+#========================================================================
+
+# Estimacion del modelo - muestra de aprendizaje: train
+
+modelo2 <- glm(rotacion ~ edad + antiguedad + ingresos +
+                genero + satlab2 +satlab3 + satlab4 + redlab ,
+              data = trainB,
+              family = binomial())
+
+summary(modelo2)
+
+#---------------------------------------------------------
+
+probabilidad <- predict(modelo2, newdata = test, type = "response")
+pred <- ifelse(probabilidad >= 0.5, 1,0)
+
+# matriz de confision
+real <- factor(test$rotacion, levels = c(0,1), labels = c("No", "Si"))
+pred <- factor(pred, levels = c(0,1), labels = c("No", "Si"))
+
+matriz_confusion = table(Real = real,
+                         Predicho = pred)
+matriz_confusion
+#------------------------------------------------------------
+
+# Curva ROC
+library(pROC)
+curva_ROC <- roc(
+  response = test$rotacion,
+  predictor = probabilidad,
+  na.rm = TRUE
+)
+auc_var = round(auc(curva_ROC), 3)
+auc_var
+
+# Gráfico ROC
+ggroc(curva_ROC, colour = "#FF7F00", linewidth = 1) +
+  ggtitle(paste0("Curva ROC (AUC = ", auc_var, ")")) +
+  xlab("1 - Especificidad") +
+  ylab("Sensibilidad")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  

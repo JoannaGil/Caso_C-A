@@ -1,0 +1,33 @@
+{
+    "id": "847FC0C1",
+    "path": "~/Desktop/Universidad Javeriana/Maestria_Ciencia_Datos/Mod Estadistico para toma decisiones/Mod2_Modelo regresion lineal Multiple/Caso C&A/Caso C&A.rmd",
+    "project_path": "Caso C&A.rmd",
+    "type": "r_markdown",
+    "hash": "3477129282",
+    "contents": "",
+    "dirty": false,
+    "created": 1774459853480.0,
+    "source_on_save": true,
+    "relative_order": 3,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "last_setup_crc32": "b46454efa6ae0333",
+        "cursorPosition": "51,0",
+        "scrollLine": "34",
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "docOutlineVisible": "0",
+        "rmdVisualCollapsedChunks": "",
+        "rmdVisualModeLocation": "101:0",
+        "docOutlineSize": "114"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1775185870,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1775185870350,
+    "read_only": false,
+    "read_only_alternatives": []
+}

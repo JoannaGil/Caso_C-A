@@ -1,0 +1,107 @@
+
+
+
+# Stage 1: Data Type Inspection
+# We check the structure of the dataset to identify the type of each variable
+# and determine if any transformation is needed
+
+# Display structure: variable names, types, and example values
+str(vivienda)
+
+# Check classes of each variable individually
+sapply(vivienda, class)
+
+# Optional: get a quick summary of each variable
+summary(vivienda)
+
+# Create a working copy of the dataset
+vivienda_clean <- vivienda
+
+# Define readable labels for selected variables
+etiquetas <- c(
+  zona = "Zona",
+  piso = "Piso",
+  estrato = "Estrato",
+  preciom = "Precio",
+  areaconst = "Area construida",
+  parqueaderos = "Parqueaderos",
+  banios = "Baños",
+  habitaciones = "Habitaciones",
+  tipo = "Tipo",
+  barrio = "Barrio",
+  longitud = "Longitud",
+  latitud = "Latitud"
+)
+
+# Rename columns in the dataset using the labels
+# If a column name exists in 'etiquetas', replace it with the label
+# Otherwise, keep the original name
+names(vivienda_clean) <- ifelse(
+  names(vivienda_clean) %in% names(etiquetas),
+  etiquetas[names(vivienda_clean)],
+  names(vivienda_clean)
+)
+
+str(vivienda_clean)
+
+
+#The structure of the dataset was examined to identify the data types of each variable. 
+#Necessary transformations were applied to ensure that categorical and numerical variables were correctly defined
+
+# 1. Check for numerical variables that should be categorical
+# Some variables may appear as numeric but actually represent categories
+# (e.g., zona, estrato, tipo). These should be converted to factors.
+
+vivienda_clean$Zona <- as.factor(vivienda_clean$Zona)
+
+# 2. Convert character variables to categorical (factor)
+# Text variables that represent categories should be transformed into factors
+# to improve analysis and modeling.
+
+vivienda_clean$barrio <- as.factor(vivienda_clean$Barrio)
+
+# 3. Verify numeric variables
+# Ensure that variables such as price, area, or coordinates are stored as numeric
+# and not as character or factor.
+
+vivienda_clean$precio <- as.numeric(vivienda_clean$Precio)
+
+# 4. Remove unnecessary variables
+# Variables like IDs that do not provide analytical value can be removed
+# to simplify the dataset.
+
+vivienda_clean$id <- NULL
+
+sapply(vivienda_clean, class)
+
+# Stage 2: Data Quality (Missing Values)
+# I count missing values for each variable to evaluate data quality
+# and decide if data cleaning is needed
+
+# Count missing values per column
+faltantes <- colSums(is.na(vivienda))
+# Display the result
+faltantes
+
+#Results show than most od the missing values are in "piso" - 2368 & "parqueaderos" - 1606 values.
+
+# Stage 3: Data Cleaning (Missing Values and Duplicates)
+# I remove rows with missing values (NA) to work with a clean dataset
+
+# Copy original dataset (raw data remains unchanged)
+vivienda_clean <- vivienda
+
+# Remove rows with missing values (NA)
+vivienda_clean <- na.omit(vivienda_clean)
+
+# Remove duplicate rows
+vivienda_clean <- unique(vivienda_clean)
+
+# Check the structure of the cleaned dataset
+str(vivienda_clean)
+
+
+
+
+
+
