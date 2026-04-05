@@ -769,18 +769,237 @@ kable(
 <details>
 
   <summary>
-    Estimación e interpretación del modelo de regresión lineal múltiple
+    Validación de supuestos del modelo de regresión lineal
   </summary>
   
+<p>
+
+Se realizó la validación de los supuestos del modelo de regresión mediante el análisis gráfico de los residuos y pruebas estadísticas. En cuanto a la linealidad, el gráfico de residuos frente a valores ajustados no evidencia patrones sistemáticos marcados, lo que sugiere que el modelo captura adecuadamente la relación entre las variables.
+
+Sin embargo, el test de **Shapiro-Wilk** indica que los residuos no siguen una distribución normal. Asimismo, la prueba de **Breusch-Pagan** evidencia la presencia de heterocedasticidad, lo que sugiere que la varianza de los errores no es constante a lo largo del rango de valores predichos.
+
+Por otro lado, el análisis de multicolinealidad mediante el factor de inflación de la **varianza (VIF)** muestra valores bajos para todas las variables, indicando que no existe colinealidad significativa entre los predictores. En cuanto a la independencia, el test de **Durbin-Watson** sugiere la presencia de autocorrelación positiva en los residuos.
+
+En conjunto, si bien el modelo presenta algunas limitaciones relacionadas con la normalidad, homocedasticidad e independencia de los errores, estos resultados son comunes en el análisis de datos reales, especialmente en el contexto del mercado inmobiliario. El modelo sigue siendo útil para fines explicativos, aunque podría mejorarse mediante el uso de estimadores robustos, transformaciones adicionales o la inclusión de variables que capturen de manera más precisa la heterogeneidad del mercado.
+
+
+</p>
+
+
+```{r, fig.width=10, fig.height=7, echo=FALSE, warning=FALSE, message=FALSE}
+par(mfrow = c(2,2), mar = c(4,4,2,1))
+plot(modelo)
+par(mfrow = c(1,1))
+
+```
+
+
   
+```{r supuestos_modelo, echo=FALSE, message=FALSE}
+
+
+
+library(lmtest)
+library(broom)
+library(car)
+
+# 1. Pruebas de supuestos
+shapiro_res <- shapiro.test(residuals(modelo))
+bp_res <- bptest(modelo)
+dw_res <- dwtest(modelo)
+vif_res <- vif(modelo)
+
+# 2. Tabla de pruebas principales
+tabla_supuestos <- data.frame(
+  Supuesto = c("Normalidad de residuos", "Homocedasticidad", "Independencia"),
+  Prueba = c("Shapiro-Wilk", "Breusch-Pagan", "Durbin-Watson"),
+  Estadistico = c(
+    round(unname(shapiro_res$statistic), 4),
+    round(unname(bp_res$statistic), 4),
+    round(unname(dw_res$statistic), 4)
+  ),
+  `P-value` = c(
+    formatC(shapiro_res$p.value, format = "e", digits = 2),
+    formatC(bp_res$p.value, format = "e", digits = 2),
+    formatC(dw_res$p.value, format = "e", digits = 2)
+  ),
+  Resultado = c(
+    ifelse(shapiro_res$p.value > 0.05, "Cumple", "No cumple"),
+    ifelse(bp_res$p.value > 0.05, "Cumple", "No cumple"),
+    ifelse(dw_res$p.value > 0.05, "Cumple", "No cumple")
+  )
+) |>
+  mutate(
+    Resultado = case_when(
+      Resultado == "Cumple" ~ cell_spec("Cumple", format = "html", color = "white", background = "#1a9641"),
+      TRUE ~ cell_spec("No cumple", format = "html", color = "white", background = "#d73027")
+    )
+  )
+
+kable(
+  tabla_supuestos,
+  format = "html",
+  caption = "Validación de supuestos del modelo de regresión",
+  align = "c",
+  escape = FALSE,
+  booktabs = TRUE
+) |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) |>
+  row_spec(0, bold = TRUE)
+
+
+htmltools::div(style = "clear: both;")
+
+```
+
+
+```{r varianza, echo=FALSE, message=FALSE}
+
+
+
+tabla_vif <- data.frame(
+  Variable = names(vif_res),
+  VIF = round(as.numeric(vif_res), 3),
+  Diagnostico = case_when(
+    as.numeric(vif_res) < 5 ~ "Adecuado",
+    as.numeric(vif_res) < 10 ~ "Moderado",
+    TRUE ~ "Alto"
+  )
+) |>
+  mutate(
+    Diagnostico = case_when(
+      Diagnostico == "Adecuado" ~ cell_spec("Adecuado", format = "html", color = "white", background = "#1a9641"),
+      Diagnostico == "Moderado" ~ cell_spec("Moderado", format = "html", color = "black", background = "#fee08b"),
+      TRUE ~ cell_spec("Alto", format = "html", color = "white", background = "#d73027")
+    )
+  )
+
+kable(
+  tabla_vif,
+  format = "html",
+  caption = "Factor de inflación de la varianza (VIF)",
+  align = "c",
+  escape = FALSE,
+  booktabs = TRUE
+) |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) |>
+  row_spec(0, bold = TRUE)
+
+htmltools::div(style = "clear: both;")
+
+```
+
+
+```{r resumen_general, echo=FALSE, message=FALSE}
+conclusion_supuestos <- data.frame(
+  Aspecto = c("Linealidad", "Normalidad de residuos", "Homocedasticidad", "Multicolinealidad", "Independencia"),
+  Evaluacion = c(
+    "Aproximadamente adecuada según inspección gráfica",
+    ifelse(shapiro_res$p.value > 0.05, "Cumple", "No cumple"),
+    ifelse(bp_res$p.value > 0.05, "Cumple", "No cumple"),
+    ifelse(max(vif_res) < 5, "Sin evidencia de colinealidad relevante", "Revisar colinealidad"),
+    ifelse(dw_res$p.value > 0.05, "Cumple", "No cumple")
+  )
+)
+
+kable(
+  conclusion_supuestos,
+  format = "html",
+  caption = "Resumen general de la validación del modelo",
+  align = "l",
+  booktabs = TRUE
+) |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "condensed")
+  ) |>
+  row_spec(0, bold = TRUE)
+
+
+
+```
+
   
   </div>
   </details>
 
 
+<div id="punto_5">
+
+<details>
+
+  <summary>
+    Predicción del precio de la vivienda mediante el modelo de regresión
+  </summary>
+
+<p>
+La predicción del precio de la vivienda no se realiza directamente a partir del conjunto de datos original, sino mediante la ecuación estimada por el modelo de regresión. El conjunto de datos se utiliza en una etapa previa para estimar los coeficientes del modelo, los cuales capturan la relación entre las variables explicativas y el precio. Posteriormente, la función de predicción aplica dicha ecuación a nuevas observaciones, permitiendo estimar el valor del inmueble en función de sus características.
+</p>
+
+
+```{r prediccion_precio, echo=FALSE, message=FALSE}
+
+# 1. Definir la nueva vivienda
+nueva_vivienda <- data.frame(
+  Area_construida = 100,
+  Estrato = 5,
+  Habitaciones = 3,
+  Parqueaderos = 1,
+  Banios = 2
+)
+
+# 2. Hacer la predicción
+pred_log <- predict(modelo, newdata = nueva_vivienda)
+pred_precio <- 10^pred_log
+
+# 3. Crear tabla para el informe
+tabla_prediccion <- nueva_vivienda |>
+  mutate(
+    `Precio estimado` = label_number(
+      prefix = "$",
+      big.mark = ".",
+      decimal.mark = ",",
+      accuracy = 1
+    )(pred_precio)
+  ) |>
+  rename(
+    `Área construida (m²)` = Area_construida,
+    Estrato = Estrato,
+    Habitaciones = Habitaciones,
+    Parqueaderos = Parqueaderos,
+    Baños = Banios
+  )
+
+# 4. Mostrar tabla bonita
+kable(
+  tabla_prediccion,
+  format = "html",
+  caption = "Predicción del precio de la vivienda a partir del modelo de regresión lineal múltiple",
+  align = "c",
+  booktabs = TRUE
+) |>
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) |>
+  row_spec(0, bold = TRUE) |>
+  column_spec(6, bold = TRUE)
+```
 
 
 
+  </div>
+  </details>
 
 
 

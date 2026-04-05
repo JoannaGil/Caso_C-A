@@ -1,4 +1,21 @@
 
+# -----------------------------------------------------------------------------
+# 0. LIBRERÍAS REQUERIDAS
+# -----------------------------------------------------------------------------
+
+library(paqueteMODELOS)
+library(ggplot2)
+library(highcharter)
+library(purrr)
+library(scales)
+library(corrplot)
+library(dplyr)
+library(knitr)
+library(paqueteMODELOS)
+library(sf)
+library(leaflet)
+library(kableExtra)
+
 
 # Set global chunk options for knitr (R Markdown)
 # echo = FALSE means that the code won't be shown in the final document
