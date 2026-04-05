@@ -1,4 +1,9 @@
 
+# ----------------------------------------------------------------------------------------------
+# 1. Filtrado, Validación y Análisis Geoespacial del Mercado Inmobiliario — Zona Norte de Cali
+# -----------------------------------------------------------------------------------------------
+
+
 #Librerias
 
 library(paqueteMODELOS)
