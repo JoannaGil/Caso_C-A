@@ -15,6 +15,8 @@ library(paqueteMODELOS)
 library(sf)
 library(leaflet)
 library(kableExtra)
+library(sf)
+library(leaflet)
 
 
 # Set global chunk options for knitr (R Markdown)

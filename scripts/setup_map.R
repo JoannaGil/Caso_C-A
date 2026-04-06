@@ -1,17 +1,4 @@
 
-# ----------------------------------------------------------------------------------------------
-# 1. Filtrado, Validación y Análisis Geoespacial del Mercado Inmobiliario — Zona Norte de Cali
-# -----------------------------------------------------------------------------------------------
-
-
-#Librerias
-
-library(paqueteMODELOS)
-library(sf)
-library(leaflet)
-library(dplyr)
-library(kableExtra)
-
 source("scripts/Exploracion_Datos.R")
 comunas <- st_read("data/mc_comunas.shp")
 data("vivienda_clean")
@@ -20,6 +7,10 @@ head(comunas)
 st_geometry_type(comunas)
 st_crs(comunas)
 plot(comunas)
+
+# ----------------------------------------------------------------------------------------------
+# 1. Filtrado, Validación y Análisis Geoespacial del Mercado Inmobiliario — Zona Norte de Cali
+# -----------------------------------------------------------------------------------------------
 
 # =============================================================
 # Desarrollo paso1. Filtrado, Validación y Análisis Geoespacial del Mercado Inmobiliario — Zona Norte de Cali
@@ -38,7 +29,6 @@ viviendas_sf <- st_as_sf(
   coords = c("Longitud", "Latitud"),
   crs = 4326
 )
-
 
 # =============================================================
 # STAGE 2: Asegurar que comunas esté en el mismo CRS

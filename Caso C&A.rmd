@@ -10,7 +10,7 @@ source("scripts/Exploracion_Datos.R")
 source("scripts/setup_map.R")
 source("scripts/Analisis_Exploratorio_ZonaNorte.R")
 source("scripts/Regresion_Lineal.R")
-
+source("scripts/potenciales_ofertas.R")
 ```
 
 <script src="js/script.js"></script>
@@ -23,28 +23,39 @@ source("scripts/Regresion_Lineal.R")
 
 <h2> Enunciado </h2>
 
-<p> Maria comenzó como agente de bienes raíces en Cali hace 10 años. Después de laborar dos años para una empresa nacional, se traslado a Bogotá y trabajó para otra agencia de bienes raíces. Sus amigos y familiares la convencieron de que con su experiencia y conocimientos del negocio debía abrir su propia agencia. Terminó por adquirir la licencia de intermediario y al poco tiempo fundó su propia compañía, C&A (Casas y Apartamentos) en Cali. Santiago y Lina, dos vendedores de la empresa anterior aceptaron trabajar en la nueva compaña. En la actualidad ocho agentes de bienes raíces colaboran con ella en C&A.</p>
+<p> 
 
-<p> Actualmente las ventas de bienes raíces en Cali se han visto disminuidas de manera significativa en lo corrido del año. Durante este periodo muchas instituciones bancarias de ahorro y vivienda están prestando grandes sumas de dinero para la industria y la construcción comercial y residencial. Cuando el efecto producto de las tensiones políticas y sociales disminuya, se espera que la actividad económica de este sector se reactive. </p>
+María lleva más de una década en el sector inmobiliario de Cali. Tras años de experiencia como agente en empresas del sector, tanto en Cali como en Bogotá, decidió fundar su propia agencia: **C&A (Casas y Apartamentos)**, respaldada por un equipo de ocho agentes con quienes opera actualmente en la ciudad.
 
-<p> Hace dos días, María recibió una carta solicitando asesoría para la compra de dos viviendas por parte de una compañía internacional que desea ubicar a dos de sus empleados con sus familias en la ciudad. Las solicitudes incluyen las siguientes condiciones: </p>
+El mercado, sin embargo, atraviesa un momento de contracción. Las ventas de bienes raíces en Cali han disminuido considerablemente durante el año en curso, en parte por un entorno de tensiones políticas y económicas que ha frenado la actividad del sector. Pese a ello, las instituciones financieras continúan canalizando recursos hacia la construcción residencial y comercial, lo que anticipa una reactivación del mercado una vez se estabilice el contexto.
 
+En este escenario, C&A recibe una oportunidad estratégica: una compañía internacional solicita asesoría para la adquisición de dos viviendas destinadas a alojar a dos de sus empleados y sus familias en la ciudad. Las propiedades deben cumplir condiciones específicas en cuanto a ubicación, características físicas y precio, condiciones que se detallan a continuación.
+
+</p>
+
+## Pasos del proyecto
 
 <p>
 
-## 1. Filtrado y validación de datos
+**Paso 1** — Filtrado y verificación de datos
+Filtrar la base de datos para conservar únicamente viviendas tipo casa ubicadas en la zona norte de Cali. Presentar un mapa con la ubicación de los inmuebles, discutiendo si todos los puntos caen dentro de la zona esperada o si existen registros geográficamente inconsistentes y a qué pueden atribuirse.
 
-Realice un filtrado de la base de datos para incluir únicamente las ofertas que cumplan con los siguientes criterios:
-**Tipo de propiedad:** casas
-**Ubicación:** zona norte de la ciudad
+**Paso 2** — Análisis exploratorio de datos (EDA)
+Examinar la relación entre el precio de la vivienda y las variables explicativas: área construida, estrato, número de baños, número de habitaciones y zona.
 
-A partir del resultado obtenido, desarrolle lo siguiente:
+**Paso 3** — Modelo de regresión lineal múltiple
+Interpretar cada coeficiente estadísticamente significativo en el contexto del mercado inmobiliario, discutiendo si los resultados son coherentes con lo observado en el EDA. Evaluar el ajuste del modelo mediante el coeficiente R², analizando su alcance explicativo y posibles estrategias para mejorarlo.
 
-- Incluya tablas o evidencias que respalden el proceso de filtrado aplicado.
-- Genere un mapa que muestre la ubicación geográfica de los registros seleccionados.
-- Análisis crítico
+**Paso 4** — Validación de supuestos
+Verificar los supuestos del modelo de regresión: normalidad de residuos, homocedasticidad, independencia y ausencia de multicolinealidad. Interpretar los resultados y, en caso de incumplimiento, proponer las correcciones metodológicas pertinentes.
+
+**Paso 5**  — Predicción
+Usar el modelo estimado para predecir el precio de una vivienda con las características definidas en la primera solicitud del cliente internacional, reportando el valor predicho con su intervalo de confianza.
+
+**Paso 6** — Recomendación de ofertas
+Con base en la predicción obtenida y el crédito preaprobado de $400 millones de pesos, identificar al menos cinco ofertas de la base de datos que se ajusten al perfil y presupuesto del cliente. Presentar las opciones en un mapa interactivo y justificar cada recomendación considerando la relación entre precio, características físicas y ubicación.
+
 </p>
-
 
 <div id="punto_1">
 
@@ -57,7 +68,7 @@ A partir del resultado obtenido, desarrolle lo siguiente:
 
 <p>
 
-Como parte del proceso de validación geoespacial, se construyó un mapa base con la delimitación territorial de la ciudad de Cali, tomando como referencia los límites oficiales de comunas establecidos por la Secretaría de Planeación Municipal. Sobre esta base cartográfica se procedió a georreferenciar las viviendas de tipo casa clasificadas como pertenecientes a la Zona Norte en la base de datos original, utilizando para ello las variables de latitud y longitud registradas en cada observación.
+Como primer paso del proyecto, se filtraron las viviendas tipo casa clasificadas en la Zona Norte y se verificó su coherencia geográfica. Para ello se construyó un mapa base con la delimitación oficial de comunas de Cali, sobre el cual se georeferenciaron los registros utilizando las variables de latitud y longitud de la base de datos. Esto permitió contrastar la zona declarada en cada registro con su ubicación geográfica real.
 
 </p>
 
@@ -159,7 +170,7 @@ Estas inconsistencias constituyen un hallazgo relevante para la calidad del dato
 
 - **Desactualización de la base de datos:** cambios en la estructura urbana o reclasificaciones administrativas posteriores al levantamiento de la información que no se ven reflejados en los registros.
 
-Este ejercicio de validación espacial pone de manifiesto la importancia de no limitarse al filtrado categórico al trabajar con datos geográficos. La incorporación de métodos de verificación basados en coordenadas permite identificar registros inconsistentes, depurar la base de datos con mayor precisión y garantizar que los análisis posteriores se sustenten en información territorialmente coherente.
+Este hallazgo tiene una implicación directa: el filtrado categórico por zona no es suficiente cuando se trabaja con datos georreferenciados. La verificación espacial mediante coordenadas permite identificar y excluir registros territorialmente inconsistentes, garantizando que los análisis de correlación y predicción de las etapas siguientes se sustenten en información geográficamente válida.
 
 </p>
 </div>
@@ -174,26 +185,25 @@ Este ejercicio de validación espacial pone de manifiesto la importancia de no l
   
 <p>
 
-Esta segunda etapa del proyecto de análisis del mercado inmobiliario de viviendas tipo casa ubicadas en la zona norte de la ciudad de Cali tiene como objetivo central comprender la estructura y el comportamiento de los datos antes de avanzar hacia el análisis de correlación, garantizando que las decisiones metodológicas posteriores estén fundamentadas en evidencia empírica.
+Con la base de datos depurada y geográficamente validada, esta etapa tiene como objetivo central comprender la estructura y el comportamiento de los datos antes de avanzar hacia el análisis de correlación, garantizando que las decisiones metodológicas posteriores estén fundamentadas en evidencia empírica.
 
 El proceso se desarrolla de forma secuencial y con propósito definido en cada paso:
 
-- Primero, se realiza una inspección general en esta ocasion de la nueva base de datos: se verifican las dimensiones, los tipos de variables y las estadísticas descriptivas básicas. 
+- Primero, se realiza una inspección general en esta ocasion de la base de datos resultante: dimensiones, tipos de variables y estadísticas descriptivas básicas, confirmando que la depuración del paso anterior no introdujo inconsistencias.
 
-- Segundo, se evalúa la calidad de los datos mediante la identificación de valores faltantes y registros duplicados. Este paso es crítico porque los valores ausentes afectan directamente el análisis de correlación.
+- Segundo, se evalúa la calidad de los datos identificando valores faltantes y duplicados, dado que su presencia puede sesgar directamente los coeficientes de correlación. 
 
-- Tercero, se lleva a cabo el análisis univariado y bivariado, que consiste en examinar la distribución de cada variable de interés. El propósito no es meramente descriptivo: conocer la forma de cada distribución (simetría, presencia de valores atípicos, concentración) es lo que determina qué coeficiente de correlación es apropiado usar en la etapa siguiente. 
+- Tercero, se lleva a cabo el análisis univariado y bivariado de las variables de interés: precio, área construida, estrato, baños y habitaciones, con el propósito de caracterizar la distribución de cada una, detectar valores atípicos y determinar qué coeficiente de correlación es apropiado aplicar en la etapa siguiente.
 
 </p>
 
-## Analisis Univariado
+## Análisis Univariado
 
-### Distribucion del precio
+### Distribución del precio de vivienda
 
 <p>
 
-Como primer paso del análisis univariado se examina el precio de la vivienda. Dado que en su escala original presenta alta dispersión y asimetría, se aplicó una transformación logarítmica para estabilizar la varianza y facilitar su interpretación.
-
+El precio es la variable respuesta del proyecto, por lo que su comportamiento distribucional es el punto de partida del análisis. En su escala original presenta alta asimetría positiva, por lo que se aplicó una transformación logarítmica para estabilizar la varianza y permitir una lectura más clara de su distribución.
 </p>
 
 ```{r Bar_Variable_precio, echo=FALSE, message=FALSE}
@@ -265,19 +275,19 @@ highchart() |>
 
 <p>
 
-El histograma resultante muestra una distribución considerablemente más simétrica, con mayor concentración de viviendas en el rango de 300 a 500 millones de COP. Sin embargo, persiste una leve cola hacia la derecha, señal de que un grupo reducido de propiedades supera significativamente el precio típico del mercado en esta zona.
+El histograma resultante muestra una distribución notablemente más simétrica, con la mayor concentración de viviendas en torno a los $316 millones de COP —valor que corresponde al pico de la distribución con 77 registros— y un rango central entre $200 y $500 millones. Hacia la derecha persiste una cola moderada que se extiende hasta valores superiores a $1.000 millones, confirmando la presencia del subsegmento de viviendas de alto valor ya identificado en la validación geoespacial.
 
-Este comportamiento tiene implicaciones directas para el análisis siguiente: confirma que trabajar con log10(Precio) es la decisión correcta, ya que una distribución más simétrica mejora la estabilidad de los coeficientes de correlación y reduce la influencia desproporcionada de valores atípicos sobre los resultados.
+Esto confirma que log10(Precio) es la escala adecuada para los análisis siguientes: reduce la influencia desproporcionada de los valores extremos y mejora la estabilidad de los coeficientes de correlación y regresión.
 
 </p>
 
-### Distribucion del Area Construida
+### Distribución del Área Construida
 
 <p>
 
-En línea con lo observado en el precio, el área construida también presenta una marcada asimetría positiva. La mayor parte de las viviendas se concentra entre los 100 y 300 m², con una cola extendida hacia valores superiores a los 1.000 m² que corresponde a un grupo reducido de propiedades de gran extensión.
+En línea con lo observado en el precio, el área construida presenta una marcada asimetría positiva. El histograma muestra que cerca del 30% de las viviendas se concentra entre los 100 y 200 m², con una frecuencia decreciente a partir de los 300 m² y una cola que se extiende hasta los 1.400 m²,representada por un grupo reducido de propiedades que no supera el 1% del dataset en cada intervalo.
 
-Estos valores atipicos en la cola hacia la derecha pueden inflrar e introducir ruiodo en los coheficientes, lo que refuerza la necesidad de evaluarlos antes de continuar.
+Estos valores extremos son los mismos que aparecen en la cola derecha del precio, lo cual es coherente: las viviendas más grandes tienden a ser también las más costosas. Su presencia puede inflar los coeficientes de correlación y regresión, por lo que su tratamiento se definirá antes de continuar con el análisis.
 
 </p>
 
@@ -349,11 +359,13 @@ highchart() |>
 ```
 
 
-### Distribucion Baños y Habitaciones
+### Distribución del número de baños y habitaciones
 
 <p>
 
-Ambas variables comparten la misma tendencia distribucional. Los baños se concentran entre 2 y 4 con pico en 3 (184 viviendas), y las habitaciones entre 3 y 5 con pico en 4 (221 viviendas). Sin embargo, sus colas derechas tienen peso real: 24 viviendas superan los 7 baños y 97 superan las 7 habitaciones, equivalente al 14% de la base de datos. Leído en conjunto con los valores atipicos de precio y área, el patrón es consistente: existe un subsegmento de viviendas de gran envergadura cuya influencia sobre los coeficientes deberá evaluarse explícitamente.
+Ambas variables comparten el mismo patrón: concentración en rangos medios con una cola derecha de peso real. Los baños se concentran entre 2 y 4 con pico en 3 (184 viviendas), y las habitaciones entre 3 y 5 con pico en 4 (221 viviendas), representando en conjunto más del 70% de los datos en cada caso.
+
+Sin embargo, lo relevante para el análisis es la cola: 24 viviendas superan los 7 baños y 97 superan las 7 habitaciones, este último equivalente al 14% de la base de datos. No son casos aislados. Sumados a los outliers identificados en precio y área, consolidan un patrón consistente a lo largo de todo el análisis univariado: existe un subsegmento de viviendas de gran envergadura cuya influencia sobre los coeficientes de correlación y regresión deberá evaluarse explícitamente antes de continuar.
 
 </p>
 
@@ -447,14 +459,13 @@ highchart() |>
   )
 ```
 
-### Distribucion del estrato 
+### Distribución del estrato socioeconómico
 
 <p>
 
-Para cerrar el análisis univariado, se examina el estrato socioeconómico. La distribución muestra que los estratos 3 y 5 concentran la mayor parte de las viviendas, siendo el estrato 5 el más frecuente, seguido de una participación intermedia del estrato 4 y una representación notablemente menor del estrato 6.
-</p>
-<p>
-Este perfil es coherente con la ubicación geográfica del estudio: la zona norte de Cali agrupa predominantemente segmentos medios y medio-altos, por lo que la escasa presencia del estrato 6 refleja la composición real del mercado más que un sesgo en la muestra. De cara al análisis de correlación, el estrato es una variable de especial interés, ya que como variable ordinal es esperable que guarde una relación directa con el precio y el área construida, relación que se examinará en la etapa siguiente.
+El estrato cierra el análisis univariado como la única variable categórica ordinal del conjunto. La distribución muestra que el estrato 5 es el más frecuente, seguido del 3 y el 4 con participación intermedia, mientras que el estrato 6 tiene una presencia notablemente menor. Este perfil refleja la composición real del mercado del área de estudio y no representa un sesgo en la muestra.
+
+A diferencia de las variables anteriores, el estrato no presenta valores atipicos, ni problemas de asimetría relevantes. Su interés para el proyecto radica en otro lugar: como variable ordinal, es esperable que establezca una relación directa y progresiva con el precio y el área construida, hipótesis que el análisis bivariado y la matriz de correlación permitirán confirmar y cuantificar en la etapa siguiente.
 </p>
 
 ```{r}
@@ -503,7 +514,7 @@ highchart() |>
 ```
 
 
-## Analisis Bivariado
+## Análisis Bivariado
 
 <p>
 
@@ -511,11 +522,13 @@ Una vez completado el análisis individual de cada variable, se examinan sus rel
 
 </p>
 
-### Distribucion Precio / Area Construida
+### Relación entre precio y área construida
 
 <p>
 
-A partir del análisis bivariado entre el precio y el área construida, se evidencia una relación positiva entre ambas variables, lo que indica que, en general, las viviendas con mayor área tienden a presentar precios más elevados. No obstante, se observa una dispersión considerable en los datos, lo que sugiere la influencia de otros factores en la determinación del precio. Asimismo, se identifican algunos valores atípicos que no siguen la tendencia general, evidenciando la heterogeneidad del mercado inmobiliario analizado.
+El gráfico confirma una relación positiva entre el área construida y el precio: a medida que aumenta el área, el precio tiende a crecer. Esta tendencia es clara en el rango central del mercado, viviendas entre 100 y 400 m², donde los puntos siguen una trayectoria ascendente relativamente coherente.
+
+Sin embargo, a partir de los 500 m² la dispersión se amplía considerablemente: viviendas de áreas similares presentan precios muy distintos, lo que indica que el área por sí sola no determina el precio y que variables como el estrato o las características internas de la propiedad intervienen de forma significativa. Los puntos ubicados en los extremos como la vivienda de 1.400 m² a $316 millones o las propiedades que superan los $1.000 millones con áreas moderadas, refuerzan el patrón del subsegmento atípico identificado en el análisis univariado, cuya influencia sobre el modelo de regresión deberá controlarse.
 
 </p> 
 
@@ -569,10 +582,13 @@ highchart() |>
 
 
 
-### Distribucion Precio / Habitaciones
+### Relación entre precio y número de habitaciones
 
 <p>
-La tendencia positiva existe pero es débil: dentro de cada categoría la dispersión de precios es alta y los rangos se solapan entre niveles contiguos. Esto indica que el número de habitaciones por sí solo no determina el precio y su peso en el análisis de correlación será complementario al de variables más fuertes como el área y el estrato.
+A diferencia de lo observado con el área construida, la relación entre el precio y el número de habitaciones es positiva pero débil. El gráfico muestra que en cada categoría, desde 1 hasta 10 habitaciones, el rango de precios es prácticamente igual, con columnas de puntos que se solapan casi por completo entre niveles contiguos. Una vivienda de 3 habitaciones puede costar lo mismo que una de 6, lo que evidencia que esta variable por sí sola tiene escasa capacidad para explicar el precio.
+
+El único patrón destacable es que los precios más altos (log > 3.0, equivalente a más de $1.000 millones) aparecen distribuidos a lo largo de casi todas las categorías, incluyendo viviendas con pocas habitaciones, lo que refuerza que el precio está siendo determinado por otras variables como área y/o estrato, más que por la cantidad de habitaciones. Su contribución al modelo de regresión será complementaria.
+
 </p>
 
 ```{r dis_precio_habitacion, echo=FALSE, message=FALSE}
@@ -619,10 +635,13 @@ highchart() |>
 
 ```
 
-### Distribucion Precio / Estrato
+### Relación entre precio y estrato socioeconómico
 
 <p>
-Es la relación más clara y consistente del análisis bivariado. Los precios medianos aumentan progresivamente del estrato 3 al 6, con cajas cada vez más compactas y mejor definidas, lo que indica que el estrato segmenta el mercado con mayor precisión que cualquier otra variable analizada. El leve solapamiento entre estratos contiguos es esperable y no contradice la tendencia general.
+
+El estrato presenta la relación más clara y consistente de todo el análisis bivariado. El boxplot muestra una progresión ordenada y sostenida de los precios medianos: el estrato 3 se concentra en torno a los $200 millones (log ≈ 2.3), el estrato 4 alrededor de $400 millones (log ≈ 2.6), el estrato 5 cerca de $500 millones (log ≈ 2.75) y el estrato 6 supera los $630 millones (log ≈ 2.85), sin solapamiento entre las medianas de ningún nivel.
+
+A diferencia de las habitaciones, donde los rangos de precio se confundían entre categorías. Aquí las cajas son progresivamente más compactas y elevadas, lo que indica que el estrato no solo se asocia con precios más altos sino que segmenta el mercado con mayor precisión que cualquier otra variable analizada hasta ahora. Este hallazgo anticipa que el estrato será uno de los predictores más relevantes en el modelo de regresión.
 
 </p>
 
@@ -641,7 +660,7 @@ highchart() |>
   hc_add_series(
     name = "Precio",
     data = box_data,
-    color = "#e31a1c",
+    color = "#2166AC",
     tooltip = list(
       useHTML = TRUE,
       pointFormat = paste0(
@@ -656,11 +675,14 @@ highchart() |>
 ```
 
 
-## Test de Normalidad
+## Test de normalidad — Shapiro-Wilk
 
 <p>
 
-Antes de seleccionar el coeficiente de correlación, se verifica el supuesto de normalidad mediante el test de Shapiro-Wilk. Los resultados muestran que todas las variables presentan valores p inferiores a 0.05, rechazando la hipótesis de normalidad. En consecuencia, se descarta el uso de Pearson y se opta por el coeficiente de Spearman, que no requiere normalidad y es más robusto ante la asimetría y los valores atipicos identificados a lo largo del análisis exploratorio.
+Con el análisis exploratorio completado, el siguiente paso antes de construir la matriz de correlación es verificar el supuesto de normalidad de las variables. El test de Shapiro-Wilk evalúa si la distribución de cada variable es compatible con una distribución normal: valores p inferiores a 0.05 indican que no lo es.
+
+Los resultados son contundentes y consistentes con lo observado en el análisis univariado: las seis variables rechazan la hipótesis de normalidad, con valores p extremadamente bajos que van desde 4.82e-05 en Precio_log hasta 5.69e-28 en Parqueaderos. Esto no es sorprendente, la asimetría positiva, los valores atipicos del subsegmento de alto valor y la naturaleza discreta de variables como baños y habitaciones son incompatibles con una distribución normal. En consecuencia, se descarta el coeficiente de Pearson y se adopta Spearman como medida de correlación, al ser no paramétrico, robusto ante asimetría y adecuado para variables ordinales como el estrato.
+
 </p>
 
 ```{r test_shapiro, echo=FALSE, message=FALSE}
@@ -682,9 +704,12 @@ kable(
 ```
 
 
-## Matriz de Correlacion - Spearman
+## Matriz de correlación de Spearman — ZonaNorte
 <p>
-Los resultados confirman y cuantifican lo anticipado en el análisis bivariado. El área construida presenta la correlación más fuerte con el precio (ρ = 0.82), seguida por el estrato (ρ = 0.71) y los baños (ρ = 0.65). Estas tres variables explican de forma conjunta la mayor parte de la variabilidad del precio en el mercado analizado. Por su parte, habitaciones (ρ = 0.45) y parqueaderos (ρ = 0.40) muestran correlaciones moderadas, con una influencia real pero complementaria. Ninguna correlación es negativa, lo que indica que todas las variables seleccionadas se mueven en la misma dirección que el precio: a medida que aumentan las características físicas y el nivel socioeconómico de la vivienda, el precio tiende a ser mayor.
+La matriz confirma y cuantifica lo anticipado a lo largo del análisis exploratorio. Respecto al precio, las correlaciones se ordenan con claridad: el área construida lidera con ρ = 0.82, seguida por el estrato (ρ = 0.71) y los baños (ρ = 0.65). las tres variables que mostraron las relaciones más nítidas en el bivariado. Las habitaciones (ρ = 0.45) y los parqueaderos (ρ = 0.40) presentan correlaciones moderadas, con una influencia real pero secundaria. Ninguna correlación es negativa, lo que indica que todas las variables apuntan en la misma dirección: a mayor tamaño y nivel socioeconómico, mayor precio.
+
+Un hallazgo adicional que la matriz revela y que tendrá implicaciones en el modelo de regresión es la correlación entre las propias variables explicativas. Los baños y el área construida presentan una correlación de ρ = 0.60, y los baños y las habitaciones de ρ = 0.60 también, lo que sugiere que estas variables comparten información redundante. Este nivel de correlación entre predictores,conocido como multicolinealidad, puede afectar la estabilidad e interpretación de los coeficientes del modelo y deberá tenerse en cuenta en la etapa siguiente.
+
 </p>
 
 ```{r Matriz_spearman, echo=FALSE, message=FALSE}
@@ -722,13 +747,11 @@ corrplot(
   
 <p>
 
-Se estimó un modelo de regresión lineal múltiple con el fin de analizar el impacto de las variables estructurales y socioeconómicas sobre el precio de la vivienda. Para ello, se utilizó como variable dependiente el logaritmo del precio, con el propósito de estabilizar la varianza y facilitar la interpretación de los coeficientes.
+Con las relaciones entre variables cuantificadas, se estima el modelo de regresión lineal múltiple usando log10(Precio) como variable dependiente. Todas las variables incluidas resultan estadísticamente significativas (p < 0.05), aunque con niveles de impacto diferenciados.
 
-Si bien el análisis de correlación evidenció una fuerte relación entre el área construida y el precio de la vivienda, en el modelo de regresión su impacto individual resulta menor al controlar por otras variables. Este resultado es coherente, ya que el área construida se encuentra altamente relacionada con otras características del inmueble, como el número de baños y habitaciones, lo que implica que parte de su efecto sobre el precio está siendo capturado por estas variables.
+El estrato es el predictor de mayor impacto individual (coeficiente = 0.105,***): cada nivel adicional de estrato incrementa el precio en aproximadamente un 27% en escala original, lo que confirma lo anticipado en el análisis bivariado. Le siguen los baños con un impacto medio (coeficiente = 0.033, ***), donde cada baño adicional representa un incremento aproximado del 7.8% en el precio. El área construida, pese a ser la variable con mayor correlación individual (ρ = 0.82), presenta el coeficiente más bajo (0.00059, ***) al controlar por las demás variables, resultado coherente con la multicolinealidad identificada en la matriz de correlación, donde el área comparte información con baños y habitaciones. Habitaciones y parqueaderos son significativos pero de impacto bajo (*), actuando como variables complementarias dentro del modelo.
 
-Asimismo, el intercepto presenta un coeficiente elevado; sin embargo, su interpretación es principalmente matemática y no económica, dado que representa el valor base del modelo en un escenario donde todas las variables son iguales a cero, lo cual no es realista en el contexto del mercado inmobiliario.
-
-En conjunto, los resultados del modelo son lógicos y consistentes con la teoría, evidenciando que el precio de la vivienda está determinado por una combinación de factores estructurales y socioeconómicos, siendo el estrato uno de los principales determinantes.
+El intercepto (1.81, ***) no tiene interpretación económica directa ya que representa el precio base cuando todas las variables son cero, un escenario sin sentido en el mercado inmobiliario real. En conjunto, el modelo es lógico y consistente: el precio de una vivienda en la Zona Norte está determinado principalmente por su nivel socioeconómico y sus características físicas, en ese orden de relevancia.
 
 </p>
 
@@ -774,14 +797,11 @@ kable(
   
 <p>
 
-Se realizó la validación de los supuestos del modelo de regresión mediante el análisis gráfico de los residuos y pruebas estadísticas. En cuanto a la linealidad, el gráfico de residuos frente a valores ajustados no evidencia patrones sistemáticos marcados, lo que sugiere que el modelo captura adecuadamente la relación entre las variables.
+La validación de supuestos revela un panorama mixto: el modelo cumple parcialmente con los requisitos de la regresión lineal clásica, lo cual es frecuente en datos de mercados inmobiliarios reales.
 
-Sin embargo, el test de **Shapiro-Wilk** indica que los residuos no siguen una distribución normal. Asimismo, la prueba de **Breusch-Pagan** evidencia la presencia de heterocedasticidad, lo que sugiere que la varianza de los errores no es constante a lo largo del rango de valores predichos.
+El único supuesto plenamente satisfecho es la ausencia de multicolinealidad: todos los valores VIF se encuentran por debajo de 2.2, umbral considerado adecuado, confirmando que, pese a las correlaciones moderadas entre predictores identificadas en la matriz de Spearman, no existe redundancia problemática entre las variables del modelo. La linealidad se considera aproximadamente adecuada según inspección gráfica, aunque sin garantía estadística formal.
 
-Por otro lado, el análisis de multicolinealidad mediante el factor de inflación de la **varianza (VIF)** muestra valores bajos para todas las variables, indicando que no existe colinealidad significativa entre los predictores. En cuanto a la independencia, el test de **Durbin-Watson** sugiere la presencia de autocorrelación positiva en los residuos.
-
-En conjunto, si bien el modelo presenta algunas limitaciones relacionadas con la normalidad, homocedasticidad e independencia de los errores, estos resultados son comunes en el análisis de datos reales, especialmente en el contexto del mercado inmobiliario. El modelo sigue siendo útil para fines explicativos, aunque podría mejorarse mediante el uso de estimadores robustos, transformaciones adicionales o la inclusión de variables que capturen de manera más precisa la heterogeneidad del mercado.
-
+Los tres supuestos restantes no se cumplen. La normalidad de residuos es rechazada por Shapiro-Wilk (W = 0.9848, p = 1.36e-06); la homocedasticidad es rechazada por Breusch-Pagan (estadístico = 77.46, p = 2.85e-15), indicando que la varianza de los errores no es constante; y la independencia es rechazada por Durbin-Watson (d = 1.49, p = 7.21e-12), sugiriendo autocorrelación positiva en los residuos. Para corregir estas limitaciones se podría considerar el uso de errores estándar robustos (HC3), transformaciones adicionales sobre las variables con mayor heterogeneidad, o la incorporación de variables que capturen mejor la segmentación del mercado, como la ubicación específica dentro de la zona o el año de construcción.
 
 </p>
 
@@ -929,8 +949,8 @@ kable(
 ```
 
   
-  </div>
-  </details>
+</div>
+</details>
 
 
 <div id="punto_5">
@@ -942,7 +962,9 @@ kable(
   </summary>
 
 <p>
-La predicción del precio de la vivienda no se realiza directamente a partir del conjunto de datos original, sino mediante la ecuación estimada por el modelo de regresión. El conjunto de datos se utiliza en una etapa previa para estimar los coeficientes del modelo, los cuales capturan la relación entre las variables explicativas y el precio. Posteriormente, la función de predicción aplica dicha ecuación a nuevas observaciones, permitiendo estimar el valor del inmueble en función de sus características.
+Con el modelo estimado y sus supuestos evaluados, se procede a predecir el precio de la vivienda solicitada por el cliente internacional. La predicción no se obtiene buscando registros similares en la base de datos, sino aplicando la ecuación del modelo a las características específicas de la solicitud: el modelo toma los valores de estrato, área construida, baños, habitaciones y parqueaderos de la vivienda objetivo y estima su precio a través de los coeficientes calculados en la etapa anterior.
+
+El resultado se expresa en escala logarítmica y se convierte a pesos colombianos aplicando la transformación inversa (10^ŷ), obteniendo así el precio estimado junto con su intervalo de confianza, rango dentro del cual se espera que se ubique el valor real de la propiedad con un 95% de certeza. Este intervalo es especialmente relevante para la decisión de compra, ya que define el margen de negociación razonable y permite contrastar si el crédito preaprobado de $350 millones es suficiente para cubrir el perfil de vivienda solicitado.
 </p>
 
 
@@ -994,13 +1016,141 @@ kable(
   ) |>
   row_spec(0, bold = TRUE) |>
   column_spec(6, bold = TRUE)
+
 ```
 
 
 
-  </div>
-  </details>
+</div>
+</details>
 
+<div id="punto_6">
+
+<details>
+
+<summary>
+  Identificación y georreferenciación de ofertas potenciale
+</summary>
+
+<p>
+
+Con el precio objetivo estimado como referencia, se identificaron cinco viviendas del dataset que se ajustan al perfil de la solicitud y cuyo precio real se encuentra por debajo del valor estimado por el modelo. Todas se ubican geográficamente en la Zona Norte, confirmadas en el mapa, y sus precios reales oscilan entre $250 y $380 millones, dentro del crédito preaprobado de $350 millones.
+
+Sin embargo, los resultados exigen una lectura crítica. La vivienda de Villa del Prado presenta la diferencia más extrema: precio real de $370M frente a un estimado de $1.569M. Una brecha de $1.199M que no refleja una oportunidad real sino una sobreestimación del modelo provocada por sus características atípicas: 1.440 m² construidos, 10 habitaciones y 4 baños, valores que se ubican en el extremo del subsegmento identificado desde el análisis univariado. Este caso ilustra la principal limitación del modelo frente a observaciones fuera del rango central de los datos.
+
+Las tres opciones más confiables, San Vicente ($340M), El Bosque ($350M y $250M) y Prados del Norte ($380M), presentan brechas menores y características más alineadas con el mercado estándar de la zona (entre 243 y 450 m², estrato 4-5). Estas propiedades constituyen las recomendaciones prioritarias para C&A, aunque su evaluación final debe complementarse con una visita técnica que considere el estado del inmueble, el entorno inmediato y condiciones no capturadas por el modelo.
+
+
+</p>
+  
+```{r potenciales_ofertas, echo=FALSE, message=FALSE}
+
+# =============================================================
+# 8. Mapa reutilizando la base del mapa anterior
+# =============================================================
+
+leaflet() %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  
+  addPolygons(
+    data = comunas_mapa,
+    fillColor = ~color,
+    fillOpacity = 0.35,
+    color = "white",
+    weight = 1,
+    popup = ~paste0(
+      "<b>", nombre, "</b><br>",
+      "Zona: ", zona
+    )
+  ) %>%
+  
+  addCircleMarkers(
+    data = top_ofertas_comuna,
+    lng = ~Longitud,
+    lat = ~Latitud,
+    radius = 4,
+    color = "#1d3557",
+    fillColor = "#e63946",
+    fillOpacity = 0.9,
+    stroke = TRUE,
+    weight = 1,
+    popup = ~paste0(
+      "<b>Barrio:</b> ", Barrio, "<br>",
+      "<b>Precio real:</b> $", label_number(big.mark = ".", decimal.mark = ",")(round(Precio, 1)), " millones<br>",
+      "<b>Precio estimado:</b> $", label_number(big.mark = ".", decimal.mark = ",")(round(precio_estimado, 1)), " millones<br>",
+      "<b>Diferencia:</b> $", label_number(big.mark = ".", decimal.mark = ",")(round(diferencia_modelo, 1)), " millones<br>",
+      "<b>Área:</b> ", Area_construida, " m²<br>",
+      "<b>Estrato:</b> ", Estrato, "<br>",
+      "<b>Habitaciones:</b> ", Habitaciones, "<br>",
+      "<b>Baños:</b> ", Banios, "<br>",
+      "<b>Parqueaderos:</b> ", Parqueaderos, "<br>",
+      "<b>Comuna:</b> ", comuna
+    )
+  ) %>%
+  
+  addLegend(
+    position = "bottomright",
+    colors = c("#457b9d", "#2a9d8f", "#e63946", "#f4a261", "#6c757d"),
+    labels = c("Norte", "Sur", "Oriente", "Oeste", "Centro"),
+    title = "Zonas de Cali",
+    opacity = 1
+  )
+
+```
+
+
+```{r}
+
+tabla_ofertas <- top_ofertas %>%
+  select(
+    Barrio,
+    Precio,
+    precio_estimado,
+    diferencia_modelo,
+    Area_construida,
+    Estrato,
+    Habitaciones,
+    Banios,
+    Parqueaderos
+  ) %>%
+  mutate(
+    Precio = paste0("$", format(round(Precio, 1), big.mark = ".", decimal.mark = ","), " M"),
+    precio_estimado = paste0("$", format(round(precio_estimado, 1), big.mark = ".", decimal.mark = ","), " M"),
+    diferencia_modelo = paste0("$", format(round(diferencia_modelo, 1), big.mark = ".", decimal.mark = ","), " M")
+  ) %>%
+  rename(
+    `Precio real` = Precio,
+    `Precio estimado` = precio_estimado,
+    `Diferencia` = diferencia_modelo,
+    `Área construida` = Area_construida,
+    `Baños` = Banios
+  )
+
+kable(
+  tabla_ofertas,
+  format = "html",
+  caption = "Cinco ofertas potenciales identificadas por el modelo",
+  align = "c",
+  booktabs = TRUE
+) %>%
+  kable_styling(
+    full_width = FALSE,
+    position = "center",
+    bootstrap_options = c("striped", "hover", "condensed")
+  )
+```
+
+<p>
+
+Durante la depuración se eliminaron únicamente los registros con inconsistencias geográficas o de captura verificables. Los valores atípicos en precio, área y características físicas se conservaron deliberadamente: en un mercado inmobiliario real, una vivienda de 1.400 m² o 10 habitaciones no es necesariamente un error —es un segmento diferente. Eliminarlos habría introducido un sesgo de selección que distorsionaría la representatividad del modelo.
+
+El costo de esta decisión es visible en los resultados: el modelo sobreestima con mayor margen precisamente en esas propiedades extremas, como quedó evidenciado en el caso de Villa del Prado. Para análisis futuros, la recomendación es segmentar el mercado en dos grupos. Vivienda estándar y vivienda de gran envergadura, y estimar modelos independientes para cada uno, o aplicar regresión robusta que reduzca la influencia de observaciones extremas sin sacrificar información real del mercado.
+
+</p>
+
+  
+</div>
+</details>
 
 
   
